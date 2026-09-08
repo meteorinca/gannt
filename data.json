@@ -1,0 +1,104 @@
+{
+  "title": "Project Management",
+  "timeline": {
+    "start": "2026-01-05",
+    "weeks": 16
+  },
+  "projects": [
+    {
+      "name": "Planning",
+      "owner": "Bob Johnson",
+      "color": "#f2b04d",
+      "tasks": [
+        {
+          "name": "Set up team",
+          "start": "2026-01-05",
+          "end": "2026-01-25"
+        },
+        {
+          "name": "Set up budget",
+          "start": "2026-01-19",
+          "end": "2026-02-08"
+        },
+        {
+          "name": "Prepare launch plan",
+          "start": "2026-02-02",
+          "end": "2026-02-15"
+        }
+      ]
+    },
+    {
+      "name": "Packaging",
+      "owner": "Henry Leblanc",
+      "color": "#c7d95f",
+      "tasks": [
+        {
+          "name": "Prepare brief",
+          "start": "2026-01-26",
+          "end": "2026-02-15"
+        },
+        {
+          "name": "Develop ideas",
+          "start": "2026-02-09",
+          "end": "2026-03-01"
+        }
+      ]
+    },
+    {
+      "name": "Marketing",
+      "owner": "Anne Hopkins",
+      "color": "#f58a5c",
+      "tasks": [
+        {
+          "name": "Prepare brief",
+          "start": "2026-03-02",
+          "end": "2026-03-15"
+        },
+        {
+          "name": "Develop ideas",
+          "start": "2026-03-16",
+          "end": "2026-03-29"
+        }
+      ]
+    },
+    {
+      "name": "Sales",
+      "owner": "Benjamin Otterson",
+      "color": "#4cc3e6",
+      "tasks": [
+        {
+          "name": "Brief sales force",
+          "start": "2026-03-09",
+          "end": "2026-03-22"
+        },
+        {
+          "name": "Sales channels",
+          "start": "2026-03-23",
+          "end": "2026-04-19"
+        }
+      ]
+    },
+    {
+      "name": "Collect Statistics",
+      "owner": "Kathy Gaines",
+      "color": "#f26d7d",
+      "tasks": [
+        {
+          "name": "Sales figures",
+          "start": "2026-01-26",
+          "end": "2026-02-15"
+        },
+        {
+          "name": "New leads",
+          "start": "2026-02-16",
+          "end": "2026-03-08"
+        },
+        {
+          "name": "Review process",
+          "start": "2026-03-09",
+          "end": "2026-03-29"
+        }
+      ]
+    }
+  ]
+}
