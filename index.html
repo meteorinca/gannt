@@ -2,468 +2,124 @@
 <html lang="en" data-theme="dark">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gantt · Project Timeline</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Gantt</title>
 <style>
-/* ============ TOKENS ============ */
-:root{
-  --font: "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
-  --mono: "SF Mono","JetBrains Mono",Menlo,Consolas,monospace;
-  --radius: 10px;
-  --bar-h: 22px;
-  --row-h: 40px;
-  --label-w: 220px;
-  --ease: cubic-bezier(.22,1,.36,1);
-}
-[data-theme="dark"]{
-  --bg:#0b1220;
-  --bg2:#0e1730;
-  --panel:rgba(255,255,255,.04);
-  --line:rgba(148,163,184,.14);
-  --line-strong:rgba(148,163,184,.28);
-  --text:#e6edf7;
-  --text-dim:#8b9bb4;
-  --shadow:0 8px 30px rgba(0,0,0,.45);
-  --tooltip-bg:#141f38;
-  color-scheme:dark;
-}
-[data-theme="light"]{
-  --bg:#f6f8fc;
-  --bg2:#eef2f9;
-  --panel:#ffffff;
-  --line:rgba(15,23,42,.08);
-  --line-strong:rgba(15,23,42,.16);
-  --text:#0f172a;
-  --text-dim:#64748b;
-  --shadow:0 10px 30px rgba(15,23,42,.12);
-  --tooltip-bg:#ffffff;
-  color-scheme:light;
-}
-
-*{margin:0;padding:0;box-sizing:border-box}
-html,body{height:100%}
-body{
-  font-family:var(--font);
-  background:
-    radial-gradient(1200px 600px at 80% -10%, var(--bg2), transparent 60%),
-    var(--bg);
-  color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  transition:background .5s var(--ease), color .5s var(--ease);
-  overflow-x:auto;
-}
-
-/* ============ HEADER ============ */
-header{
-  position:sticky;top:0;z-index:50;
-  display:flex;align-items:center;justify-content:space-between;
-  padding:18px 28px;
-  background:color-mix(in srgb, var(--bg) 82%, transparent);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--line);
-}
-.brand{display:flex;align-items:center;gap:12px}
-.brand .dot{
-  width:10px;height:10px;border-radius:50%;
-  background:conic-gradient(from 90deg,#f59e0b,#22d3ee,#a78bfa,#f59e0b);
-  animation:spin 6s linear infinite;
-}
-@keyframes spin{to{transform:rotate(360deg)}}
-.brand h1{font-size:15px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}
-.brand span{font-size:12px;color:var(--text-dim);font-family:var(--mono)}
-
-/* theme toggle */
-.toggle{
-  position:relative;width:56px;height:30px;border-radius:99px;
-  border:1px solid var(--line-strong);
-  background:var(--panel);cursor:pointer;
-  display:flex;align-items:center;padding:3px;
-  transition:background .3s;
-}
-.toggle .knob{
-  width:22px;height:22px;border-radius:50%;
-  background:linear-gradient(145deg,#fde68a,#f59e0b);
-  display:grid;place-items:center;font-size:12px;
-  transition:transform .45s var(--ease), background .45s;
-  box-shadow:0 2px 8px rgba(0,0,0,.3);
-}
-[data-theme="dark"] .toggle .knob{transform:translateX(0)}
-[data-theme="light"] .toggle .knob{transform:translateX(26px);background:linear-gradient(145deg,#bae6fd,#38bdf8)}
-
-/* ============ CHART ============ */
-.wrap{padding:28px}
-.chart{
-  min-width:900px;
-  background:var(--panel);
-  border:1px solid var(--line);
-  border-radius:16px;
-  box-shadow:var(--shadow);
-  overflow:hidden;
-  animation:rise .7s var(--ease) both;
-}
-@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
-
-.grid{display:grid;grid-template-columns:var(--label-w) 1fr}
-
-/* --- header rows --- */
-.corner{
-  position:sticky;left:0;z-index:6;
-  padding:14px 18px;font-size:11px;font-weight:700;
-  letter-spacing:.18em;text-transform:uppercase;color:var(--text-dim);
-  border-bottom:1px solid var(--line);
-  background:color-mix(in srgb, var(--bg) 92%, transparent);
-  display:flex;align-items:flex-end;
-}
-.months{display:flex;border-bottom:1px solid var(--line)}
-.month{flex:1;border-left:1px solid var(--line)}
-.month .m-name{
-  padding:8px 0 2px;text-align:center;font-size:13px;font-weight:600;letter-spacing:.04em;
-}
-.weeks{display:flex}
-.week{
-  flex:1;text-align:center;font-size:10px;color:var(--text-dim);
-  font-family:var(--mono);padding:4px 0 8px;
-  border-left:1px dashed var(--line);
-}
-.month:first-child .week:first-child{border-left:none}
-.week.today{color:#f43f5e;font-weight:700}
-
-/* --- body --- */
-.rows{position:relative}
-.rows::before{ /* vertical gridlines */
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background-image:repeating-linear-gradient(to right,
-    var(--line) 0 1px, transparent 1px calc(100% / var(--weeks)));
-  opacity:.55;
-}
-
-/* project band */
-.band{border-top:1px solid var(--line-strong)}
-.band:first-child{border-top:none}
-.band-label{
-  position:sticky;left:0;z-index:5;
-  padding:16px 18px 8px;
-  background:color-mix(in srgb, var(--bg) 88%, transparent);
-}
-.band-label .p-name{font-size:14px;font-weight:700}
-.band-label .p-owner{
-  font-size:11px;color:var(--text-dim);font-family:var(--mono);margin-top:2px;
-  display:flex;align-items:center;gap:6px;
-}
-.band-label .p-owner::before{
-  content:"";width:8px;height:8px;border-radius:3px;
-  background:var(--pc,#f59e0b);
-  box-shadow:0 0 10px var(--pc,#f59e0b);
-}
-.band-track{position:relative;padding:4px 0 10px}
-
-/* task rows */
-.task{display:flex;height:var(--row-h);align-items:center}
-.task .t-label{
-  position:sticky;left:0;z-index:4;
-  width:var(--label-w);flex:none;
-  padding-left:34px;font-size:12.5px;color:var(--text-dim);
-  background:color-mix(in srgb, var(--bg) 88%, transparent);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-}
-.task .t-track{flex:1;position:relative;height:100%}
-
-/* bars */
-.bar{
-  position:absolute;top:50%;transform:translateY(-50%);
-  height:var(--bar-h);border-radius:99px;
-  background:linear-gradient(90deg,
-    color-mix(in srgb, var(--bc) 92%, white),
-    color-mix(in srgb, var(--bc) 70%, transparent));
-  box-shadow:0 0 0 1px color-mix(in srgb, var(--bc) 40%, transparent) inset,
-             0 4px 14px color-mix(in srgb, var(--bc) 35%, transparent);
-  cursor:pointer;
-  opacity:0;transform:translateY(-30%) scaleX(.6);transform-origin:left center;
-  transition:transform .6s var(--ease), opacity .6s var(--ease), filter .25s;
-}
-.bar.in{opacity:1;transform:translateY(-50%) scaleX(1)}
-.bar:hover{filter:brightness(1.15) saturate(1.2);z-index:3}
-.bar.summary{
-  height:26px;
-  background:linear-gradient(90deg,
-    color-mix(in srgb, var(--bc) 100%, white 10%),
-    var(--bc));
-  font-size:10.5px;font-weight:700;color:rgba(0,0,0,.55);
-  display:flex;align-items:center;padding:0 12px;
-  letter-spacing:.05em;white-space:nowrap;overflow:hidden;
-}
-.bar::after{ /* sheen */
-  content:"";position:absolute;inset:0;border-radius:inherit;
-  background:linear-gradient(180deg,rgba(255,255,255,.35),transparent 55%);
-  pointer-events:none;
-}
-
-/* milestone diamond */
-.milestone{
-  position:absolute;top:50%;width:14px;height:14px;
-  transform:translate(-50%,-50%) rotate(45deg);
-  background:var(--bc);border-radius:3px;
-  box-shadow:0 0 12px var(--bc);
-  opacity:0;transition:opacity .5s .3s;
-}
-.milestone.in{opacity:1}
-
-/* today line */
-.todayline{
-  position:absolute;top:0;bottom:0;width:2px;
-  background:linear-gradient(#f43f5e, #fb7185);
-  box-shadow:0 0 12px #f43f5e;
-  z-index:2;pointer-events:none;
-  opacity:.8;
-}
-.todayline::before{
-  content:"TODAY";position:absolute;top:-2px;left:50%;transform:translateX(-50%);
-  font-size:8px;font-weight:800;letter-spacing:.12em;color:#fff;
-  background:#f43f5e;padding:2px 6px;border-radius:99px;
-}
-
-/* tooltip */
-#tip{
-  position:fixed;z-index:99;pointer-events:none;
-  background:var(--tooltip-bg);
-  border:1px solid var(--line-strong);
-  border-radius:12px;padding:10px 14px;
-  box-shadow:var(--shadow);
-  font-size:12px;line-height:1.5;
-  opacity:0;transform:translateY(6px) scale(.96);
-  transition:opacity .18s,transform .18s var(--ease);
-  max-width:260px;
-}
-#tip.show{opacity:1;transform:none}
-#tip .tt-name{font-weight:700;font-size:13px}
-#tip .tt-dates{font-family:var(--mono);font-size:11px;color:var(--text-dim);margin-top:2px}
-#tip .tt-dates b{color:var(--text)}
-
-footer{padding:6px 28px 30px;font-size:11px;color:var(--text-dim);font-family:var(--mono);display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
-
-@media (max-width:700px){
-  :root{--label-w:150px}
-  .band-label .p-owner{display:none}
-}
+:root{--lw:200px;--font:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+[data-theme=dark]{--bg:#0d1420;--panel:#131c2e;--line:#24324c;--text:#e6edf7;--dim:#8b9bb4}
+[data-theme=light]{--bg:#f4f6fa;--panel:#fff;--line:#dde3ec;--text:#0f172a;--dim:#64748b}
+*{margin:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;transition:background .3s,color .3s}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid var(--line)}
+h1{font-size:14px;letter-spacing:.12em;text-transform:uppercase}
+#sub{font-size:11px;color:var(--dim);font-family:monospace;margin-top:2px}
+#thBtn{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:14px}
+#thBtn:hover{border-color:var(--dim)}
+.wrap{padding:20px;overflow-x:auto}
+table{border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden;min-width:820px;width:100%}
+th,td{border-left:1px solid var(--line);padding:0}
+th{font-weight:600;font-size:12px;padding:8px 4px;text-align:center;border-bottom:1px solid var(--line)}
+th.mo{font-size:13px;border-bottom:none}
+td.w{font-size:10px;color:var(--dim);font-family:monospace;text-align:center;padding:4px;border-bottom:1px solid var(--line)}
+td.lbl{position:sticky;left:0;background:var(--panel);padding:10px 16px;font-size:12px;color:var(--dim);white-space:nowrap;z-index:2}
+td.lbl b{display:block;color:var(--text);font-size:14px}
+td.lbl i{font-style:normal;font-size:10px;font-family:monospace}
+td.lbl i::before{content:"";display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--pc);margin-right:6px}
+td.trk{position:relative;height:38px;min-width:600px}
+.bar{position:absolute;top:50%;transform:translateY(-50%);height:18px;border-radius:9px;background:var(--pc);opacity:.9;cursor:default}
+.bar:hover{opacity:1}
+.bar.sum{height:24px;opacity:1}
+.mile{position:absolute;top:50%;width:12px;height:12px;transform:translate(-50%,-50%) rotate(45deg);background:var(--pc);border-radius:2px}
+.today{position:absolute;top:0;bottom:0;width:2px;background:#f43f5e;opacity:.85;pointer-events:none}
+footer{padding:10px 20px 24px;font-size:11px;color:var(--dim);font-family:monospace}
 </style>
+<base target="_blank">
 </head>
 <body>
-
 <header>
-  <div class="brand">
-    <div class="dot"></div>
-    <div>
-      <h1 id="pageTitle">Project Timeline</h1>
-      <span id="pageSub">loading…</span>
-    </div>
-  </div>
-  <button class="toggle" id="themeToggle" aria-label="Toggle theme">
-    <div class="knob" id="knob">🌙</div>
-  </button>
+  <div><h1 id="t">Gantt</h1><div id="sub"></div></div>
+  <button id="thBtn" title="Toggle theme">🌙</button>
 </header>
-
-<div class="wrap">
-  <div class="chart" id="chart" style="--weeks:16">
-    <div class="grid">
-      <div class="corner" id="corner">Project</div>
-      <div class="months" id="months"></div>
-    </div>
-    <div class="rows" id="rows"></div>
-  </div>
-</div>
-
-<footer>
-  <span id="footSrc"></span>
-  <span>edit <code>data.json</code> → push → done</span>
-</footer>
-
-<div id="tip"></div>
-
+<div class="wrap"><table id="g"></table></div>
+<footer id="src"></footer>
 <script>
-/* ================================================================
-   FALLBACK DATA — used when data.json can't be fetched (e.g. opened
-   via file://). On GitHub Pages, place data.json next to index.html
-   and it will be loaded automatically.
-   ================================================================ */
-const FALLBACK_DATA = {
-  "title": "Project Management",
-  "timeline": { "start": "2026-01-05", "weeks": 16 },
-  "projects": [
-    { "name": "Planning", "owner": "Bob Johnson", "color": "#f2b04d", "tasks": [
-      { "name": "Set up team",        "start": "2026-01-05", "end": "2026-01-25" },
-      { "name": "Set up budget",      "start": "2026-01-19", "end": "2026-02-08" },
-      { "name": "Prepare launch plan","start": "2026-02-02", "end": "2026-02-15" }
-    ]},
-    { "name": "Packaging", "owner": "Henry Leblanc", "color": "#c7d95f", "tasks": [
-      { "name": "Prepare brief", "start": "2026-01-26", "end": "2026-02-15" },
-      { "name": "Develop ideas", "start": "2026-02-09", "end": "2026-03-01" }
-    ]},
-    { "name": "Marketing", "owner": "Anne Hopkins", "color": "#f58a5c", "tasks": [
-      { "name": "Prepare brief", "start": "2026-03-02", "end": "2026-03-15" },
-      { "name": "Develop ideas", "start": "2026-03-16", "end": "2026-03-29" }
-    ]},
-    { "name": "Sales", "owner": "Benjamin Otterson", "color": "#4cc3e6", "tasks": [
-      { "name": "Brief sales force", "start": "2026-03-09", "end": "2026-03-22" },
-      { "name": "Sales channels",    "start": "2026-03-23", "end": "2026-04-19" }
-    ]},
-    { "name": "Collect Statistics", "owner": "Kathy Gaines", "color": "#f26d7d", "tasks": [
-      { "name": "Sales figures",   "start": "2026-01-26", "end": "2026-02-15" },
-      { "name": "New leads",       "start": "2026-02-16", "end": "2026-03-08" },
-      { "name": "Review process",  "start": "2026-03-09", "end": "2026-03-29" }
-    ]}
-  ]
-};
+/* Fallback data — used only if data.json is missing (e.g. opened via file://) */
+var FB={"title":"Project Management","timeline":{"start":"2026-01-05","weeks":16},"projects":[
+{"name":"Planning","owner":"Bob Johnson","color":"#f2b04d","tasks":[
+{"name":"Set up team","start":"2026-01-05","end":"2026-01-25"},
+{"name":"Set up budget","start":"2026-01-19","end":"2026-02-08"},
+{"name":"Prepare launch plan","start":"2026-02-02","end":"2026-02-15"}]},
+{"name":"Packaging","owner":"Henry Leblanc","color":"#c7d95f","tasks":[
+{"name":"Prepare brief","start":"2026-01-26","end":"2026-02-15"},
+{"name":"Develop ideas","start":"2026-02-09","end":"2026-03-01"}]},
+{"name":"Marketing","owner":"Anne Hopkins","color":"#f58a5c","tasks":[
+{"name":"Prepare brief","start":"2026-03-02","end":"2026-03-15"},
+{"name":"Develop ideas","start":"2026-03-16","end":"2026-03-29"}]},
+{"name":"Sales","owner":"Benjamin Otterson","color":"#4cc3e6","tasks":[
+{"name":"Brief sales force","start":"2026-03-09","end":"2026-03-22"},
+{"name":"Sales channels","start":"2026-03-23","end":"2026-04-19"}]},
+{"name":"Collect Statistics","owner":"Kathy Gaines","color":"#f26d7d","tasks":[
+{"name":"Sales figures","start":"2026-01-26","end":"2026-02-15"},
+{"name":"New leads","start":"2026-02-16","end":"2026-03-08"},
+{"name":"Review process","start":"2026-03-09","end":"2026-03-29"}]}]};
 
-/* ============ THEME ============ */
-const root = document.documentElement;
-const knob = document.getElementById('knob');
-const savedTheme = localStorage.getItem('gantt-theme')
-  || (matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-function applyTheme(t){
-  root.dataset.theme = t;
-  knob.textContent = t === 'dark' ? '🌙' : '☀️';
-  localStorage.setItem('gantt-theme', t);
-}
-applyTheme(savedTheme);
-document.getElementById('themeToggle').onclick = () =>
-  applyTheme(root.dataset.theme === 'dark' ? 'light' : 'dark');
+var root=document.documentElement,btn=document.getElementById('thBtn');
+function theme(t){root.dataset.theme=t;btn.textContent=t=='dark'?'🌙':'☀️';try{localStorage.setItem('gt',t)}catch(e){}}
+theme(function(){try{return localStorage.getItem('gt')}catch(e){return null}}()||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark'));
+btn.onclick=function(){theme(root.dataset.theme=='dark'?'light':'dark')};
 
-/* ============ HELPERS ============ */
-const DAY = 86400000;
-const parseD = s => { const [y,m,d] = s.split('-').map(Number); return new Date(y, m-1, d); };
-const fmt  = d => d.toLocaleDateString('en-US', { month:'short', day:'numeric' });
-const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+function D(s){var p=s.split('-');return new Date(+p[0],+p[1]-1,+p[2])}
+function F(d){return d.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
 
-/* ============ RENDER ============ */
-function render(data){
-  document.title = data.title + ' · Gantt';
-  document.getElementById('pageTitle').textContent = data.title;
+function render(d){
+  document.title=d.title;
+  document.getElementById('t').textContent=d.title;
+  var start=D(d.timeline.start),W=d.timeline.weeks,end=new Date(start.getTime()+W*7*864e5);
+  document.getElementById('sub').textContent=F(start)+' → '+F(end)+' · '+W+' weeks';
+  var P=function(s){return Math.max(0,Math.min(100,(D(s)-start)/(end-start)*100))};
+  var g=document.getElementById('g'),h='';
 
-  const start  = parseD(data.timeline.start);
-  const totalW = data.timeline.weeks;
-  const end    = new Date(start.getTime() + totalW * 7 * DAY);
-  document.getElementById('pageSub').textContent =
-    `${fmt(start)} → ${fmt(end)} · ${totalW} weeks`;
-  document.getElementById('chart').style.setProperty('--weeks', totalW);
-  document.getElementById('corner').textContent = data.title;
-
-  /* month / week header */
-  const monthsEl = document.getElementById('months');
-  monthsEl.innerHTML = '';
-  const cursor = new Date(start);
-  let weekIndex = 0;
-  while (cursor < end) {
-    const mName = cursor.toLocaleDateString('en-US', { month:'long' });
-    const month = document.createElement('div'); month.className = 'month';
-    const nm = document.createElement('div'); nm.className = 'm-name'; nm.textContent = mName;
-    const wk = document.createElement('div'); wk.className = 'weeks';
-    while (cursor < end && cursor.toLocaleDateString('en-US',{month:'long'}) === mName && weekIndex < totalW) {
-      const w = document.createElement('div'); w.className = 'week'; w.textContent = 'W' + ((weekIndex % 4) + 1);
-      const wStart = new Date(start.getTime() + weekIndex * 7 * DAY);
-      const now = new Date();
-      if (now >= wStart && now < new Date(wStart.getTime() + 7*DAY)) w.classList.add('today');
-      wk.appendChild(w);
-      cursor.setDate(cursor.getDate() + 7);
-      weekIndex++;
-    }
-    month.append(nm, wk); monthsEl.appendChild(month);
+  /* header: one <th> per week, grouped visually under month names */
+  var cur=new Date(start),wk=0,moRows='',wkRows='',lblRow='<tr><td class="lbl"></td>';
+  while(cur<end&&wk<W){
+    var m=cur.toLocaleDateString('en-US',{month:'long'}),n=0;
+    while(cur<end&&cur.toLocaleDateString('en-US',{month:'long'})==m&&wk<W){n++;cur.setDate(cur.getDate()+7);wk++}
+    moRows+='<th class="mo" colspan="'+n+'">'+m+'</th>';
   }
+  for(var i=0;i<W;i++)wkRows+='<td class="w">W'+(i%4+1)+'</td>';
+  h+='<tr><td class="lbl"></td>'+moRows+'</tr><tr><td class="lbl"></td>'+wkRows+'</tr>';
 
-  /* rows */
-  const rows = document.getElementById('rows');
-  rows.innerHTML = '';
-  const pct = date => clamp((parseD(date) - start) / (end - start) * 100, 0, 100);
-  const tip = document.getElementById('tip');
-
-  const bindTip = (el, name, s, e, owner) => {
-    el.addEventListener('mousemove', ev => {
-      tip.innerHTML = `<div class="tt-name">${name}</div>
-        <div class="tt-dates">${owner ? owner + ' · ' : ''}<b>${fmt(parseD(s))}</b> → <b>${fmt(parseD(e))}</b></div>`;
-      tip.classList.add('show');
-      const w = tip.offsetWidth, h = tip.offsetHeight;
-      tip.style.left = clamp(ev.clientX + 14, 8, innerWidth  - w - 8) + 'px';
-      tip.style.top  = clamp(ev.clientY - h - 12, 8, innerHeight - h - 8) + 'px';
+  /* project rows: summary bar, then one row per task */
+  d.projects.forEach(function(p){
+    var s=p.tasks.reduce(function(a,t){return t.start<a?t.start:a},p.tasks[0].start);
+    var e=p.tasks.reduce(function(a,t){return t.end>a?t.end:a},p.tasks[0].end);
+    var l='<td class="lbl" style="--pc:'+p.color+'"><b>'+p.name+'</b><i>'+(p.owner||'')+'</i></td>';
+    h+='<tr>'+l+'<td class="trk"><div class="bar sum" style="--pc:'+p.color+';left:'+P(s)+'%;width:'+(P(e)-P(s))+'%" title="'+p.name+' · '+p.owner+'\n'+F(D(s))+' → '+F(D(e))+'"></div></td></tr>';
+    p.tasks.forEach(function(t){
+      var inner;
+      if(t.milestone){inner='<div class="mile" style="--pc:'+p.color+';left:'+P(t.start)+'%" title="◆ '+t.name+' · '+F(D(t.start))+'"></div>'}
+      else{inner='<div class="bar" style="--pc:'+p.color+';left:'+P(t.start)+'%;width:'+Math.max(P(t.end)-P(t.start),1)+'%" title="'+t.name+'\n'+F(D(t.start))+' → '+F(D(t.end))+'"></div>'}
+      h+='<tr>'+l.replace('class="lbl"','class="lbl"')+'<td class="trk">'+inner+'</td></tr>';
     });
-    el.addEventListener('mouseleave', () => tip.classList.remove('show'));
-  };
-
-  let delay = 0;
-  data.projects.forEach(p => {
-    const band = document.createElement('div');
-    band.className = 'band';
-    band.innerHTML = `
-      <div class="grid">
-        <div class="band-label" style="--pc:${p.color}">
-          <div class="p-name">${p.name}</div>
-          <div class="p-owner">${p.owner || ''}</div>
-        </div>
-        <div class="band-track"></div>
-      </div>`;
-    const track = band.querySelector('.band-track');
-
-    // summary bar spanning min start → max end
-    if (p.tasks.length) {
-      const s = p.tasks.reduce((a,t)=> t.start < a ? t.start : a, p.tasks[0].start);
-      const e = p.tasks.reduce((a,t)=> t.end   > a ? t.end   : a, p.tasks[0].end);
-      const sum = document.createElement('div');
-      sum.className = 'bar summary';
-      sum.style.cssText = `--bc:${p.color};left:${pct(s)}%;width:${pct(e)-pct(s)}%;transition-delay:${delay}ms`;
-      sum.textContent = p.owner || '';
-      bindTip(sum, p.name, s, e, p.owner);
-      track.appendChild(sum);
-      requestAnimationFrame(()=> requestAnimationFrame(()=> sum.classList.add('in')));
-      delay += 90;
-    }
-
-    p.tasks.forEach(t => {
-      const row = document.createElement('div');
-      row.className = 'task';
-      row.innerHTML = `<div class="t-label">${t.name}</div><div class="t-track"></div>`;
-      const tt = row.querySelector('.t-track');
-      if (t.milestone) {
-        const m = document.createElement('div');
-        m.className = 'milestone';
-        m.style.cssText = `--bc:${p.color};left:${pct(t.start)}%`;
-        tt.appendChild(m);
-        requestAnimationFrame(()=> requestAnimationFrame(()=> m.classList.add('in')));
-        bindTip(m, '◆ ' + t.name, t.start, t.start, p.owner);
-      } else {
-        const b = document.createElement('div');
-        b.className = 'bar';
-        b.style.cssText = `--bc:${p.color};left:${pct(t.start)}%;width:${Math.max(pct(t.end)-pct(t.start),1)}%;transition-delay:${delay}ms`;
-        tt.appendChild(b);
-        requestAnimationFrame(()=> requestAnimationFrame(()=> b.classList.add('in')));
-        bindTip(b, t.name, t.start, t.end, p.owner);
-      }
-      track.appendChild(row);
-      delay += 60;
-    });
-    rows.appendChild(band);
   });
+  g.innerHTML=h;
 
   /* today line */
-  const now = new Date();
-  if (now >= start && now <= end) {
-    const line = document.createElement('div');
-    line.className = 'todayline';
-    line.style.left = ((now - start) / (end - start) * 100) + '%';
-    rows.appendChild(line);
+  var now=new Date();
+  if(now>=start&&now<=end){
+    var tl=document.createElement('div');tl.className='today';
+    tl.style.left=((now-start)/(end-start)*100)+'%';
+    g.querySelectorAll('td.trk').forEach(function(td){td.appendChild(tl.cloneNode())});
   }
 }
 
-/* ============ LOAD data.json (fallback to embedded) ============ */
-(async () => {
-  const src = document.getElementById('footSrc');
-  try {
-    const res = await fetch('data.json', { cache: 'no-store' });
-    if (!res.ok) throw new Error(res.status);
-    render(await res.json());
-    src.textContent = 'source: data.json ✓';
-  } catch {
-    render(FALLBACK_DATA);
-    src.textContent = 'source: embedded fallback (data.json not found)';
-  }
-})();
+fetch('data.json',{cache:'no-store'}).then(function(r){
+  if(!r.ok)throw 0;return r.json();
+}).then(function(d){
+  render(d);document.getElementById('src').textContent='source: data.json ✓';
+}).catch(function(){
+  render(FB);document.getElementById('src').textContent='source: embedded fallback (data.json not found)';
+});
 </script>
 </body>
 </html>
